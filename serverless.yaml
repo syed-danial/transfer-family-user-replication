@@ -1,0 +1,72 @@
+service: transfer-user-lambda
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: python3.10
+  region: us-west-2
+  deploymentBucket: test-deployment-bucket-danial
+
+
+functions:
+  transferUserFunction:
+    handler: functions/transfer_user.lambda_handler
+    timeout: 60
+    role: TransferUserFunctionRole
+    events:
+      - schedule: cron(*/3 0 * * ? *)  
+    environment:
+      HOST_SERVER_ID: ${env:HOST_SERVER_ID}
+      DEST_SERVER_ID: ${env:DEST_SERVER_ID}
+      S3_BUCKET_NAME: ${env:S3_BUCKET_NAME}
+      SOURCE_REGION: ${env:SOURCE_REGION}
+      DEST_REGION: ${env:DEST_REGION}
+
+resources:
+  Resources:
+    TransferUserFunctionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: TransferUserFunctionRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+            
+    TransferUserFunctionInvokePolicy:
+      Type: AWS::IAM::Policy
+      DependsOn: TransferUserFunctionRole
+      Properties:
+        PolicyName: TransferUserFunctionInvokePolicy
+        Roles:
+          - TransferUserFunctionRole
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - transfer:DescribeUser
+                - transfer:CreateUser
+                - transfer:ImportSshPublicKey
+                - transfer:ListUsers
+                - iam:PassRole
+                - logs:*
+              Resource:
+                - '*'
+
+package:
+  individually: true
+  excludeDevDependencies: true
+  patterns:
+    - "!.serverless/**"
+    - "!node_modules/**"
+    - "!.env.dev"
+    - "!package-lock.json"
+    - "!package.json"
+    - "!requirements.txt"
+    - "!serverless.yaml"
+
+    

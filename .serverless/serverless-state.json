@@ -1,0 +1,295 @@
+{
+  "service": {
+    "service": "transfer-user-lambda",
+    "serviceObject": {
+      "name": "transfer-user-lambda"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "python3.10",
+      "region": "us-west-2",
+      "deploymentBucket": "test-deployment-bucket-danial",
+      "stage": "dev",
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "TransferUserFunctionLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/transfer-user-lambda-dev-transferUserFunction"
+            }
+          },
+          "TransferUserFunctionLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "test-deployment-bucket-danial",
+                "S3Key": "serverless/transfer-user-lambda/dev/1709852572188-2024-03-07T23:02:52.188Z/transferUserFunction.zip"
+              },
+              "Handler": "functions/transfer_user.lambda_handler",
+              "Runtime": "python3.10",
+              "FunctionName": "transfer-user-lambda-dev-transferUserFunction",
+              "MemorySize": 1024,
+              "Timeout": 60,
+              "Environment": {
+                "Variables": {
+                  "HOST_SERVER_ID": "s-321dc95106e74576b",
+                  "DEST_SERVER_ID": "s-485d6b133a2248bb8",
+                  "S3_BUCKET_NAME": "test-users-danial",
+                  "SOURCE_REGION": "us-west-2",
+                  "DEST_REGION": "us-east-2"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "TransferUserFunctionRole",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "TransferUserFunctionLogGroup",
+              "TransferUserFunctionRole"
+            ]
+          },
+          "TransferUserFunctionLambdaVersioned0Yx9g9kSGMdUMPOQkx49TAuoxURDpmj6Y5NA7fXw4": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "TransferUserFunctionLambdaFunction"
+              },
+              "CodeSha256": "XQlp7AgmdT5G/GncwMzZ7gj2Ik7RzwAu7jDT33rg15I="
+            }
+          },
+          "TransferUserFunctionEventsRuleSchedule1": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "ScheduleExpression": "cron(*/3 0 * * ? *)",
+              "State": "ENABLED",
+              "Targets": [
+                {
+                  "Arn": {
+                    "Fn::GetAtt": [
+                      "TransferUserFunctionLambdaFunction",
+                      "Arn"
+                    ]
+                  },
+                  "Id": "transferUserFunctionSchedule"
+                }
+              ]
+            }
+          },
+          "TransferUserFunctionLambdaPermissionEventsRuleSchedule1": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "TransferUserFunctionLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "events.amazonaws.com",
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "TransferUserFunctionEventsRuleSchedule1",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "TransferUserFunctionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "RoleName": "TransferUserFunctionRole",
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": "lambda.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                  }
+                ]
+              }
+            }
+          },
+          "TransferUserFunctionInvokePolicy": {
+            "Type": "AWS::IAM::Policy",
+            "DependsOn": [
+              "TransferUserFunctionRole"
+            ],
+            "Properties": {
+              "PolicyName": "TransferUserFunctionInvokePolicy",
+              "Roles": [
+                "TransferUserFunctionRole"
+              ],
+              "PolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": [
+                      "transfer:DescribeUser",
+                      "transfer:CreateUser",
+                      "transfer:ImportSshPublicKey",
+                      "transfer:ListUsers",
+                      "iam:PassRole",
+                      "logs:*"
+                    ],
+                    "Resource": [
+                      "*"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "test-deployment-bucket-danial",
+            "Export": {
+              "Name": "sls-transfer-user-lambda-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "TransferUserFunctionLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "TransferUserFunctionLambdaVersioned0Yx9g9kSGMdUMPOQkx49TAuoxURDpmj6Y5NA7fXw4"
+            },
+            "Export": {
+              "Name": "sls-transfer-user-lambda-dev-TransferUserFunctionLambdaFunctionQualifiedArn"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "pluginsData": {},
+    "functions": {
+      "transferUserFunction": {
+        "handler": "functions/transfer_user.lambda_handler",
+        "timeout": 60,
+        "role": "TransferUserFunctionRole",
+        "events": [
+          {
+            "schedule": "cron(*/3 0 * * ? *)"
+          }
+        ],
+        "environment": {
+          "HOST_SERVER_ID": "s-321dc95106e74576b",
+          "DEST_SERVER_ID": "s-485d6b133a2248bb8",
+          "S3_BUCKET_NAME": "test-users-danial",
+          "SOURCE_REGION": "us-west-2",
+          "DEST_REGION": "us-east-2"
+        },
+        "name": "transfer-user-lambda-dev-transferUserFunction",
+        "package": {
+          "artifact": "/home/eurus/Desktop/serverless/transfer-user/.serverless/transferUserFunction.zip"
+        },
+        "memory": 1024,
+        "runtime": "python3.10",
+        "vpc": {},
+        "versionLogicalId": "TransferUserFunctionLambdaVersioned0Yx9g9kSGMdUMPOQkx49TAuoxURDpmj6Y5NA7fXw4"
+      }
+    },
+    "resources": {
+      "Resources": {
+        "TransferUserFunctionRole": {
+          "Type": "AWS::IAM::Role",
+          "Properties": {
+            "RoleName": "TransferUserFunctionRole",
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": "lambda.amazonaws.com"
+                  },
+                  "Action": "sts:AssumeRole"
+                }
+              ]
+            }
+          }
+        },
+        "TransferUserFunctionInvokePolicy": {
+          "Type": "AWS::IAM::Policy",
+          "DependsOn": [
+            "TransferUserFunctionRole"
+          ],
+          "Properties": {
+            "PolicyName": "TransferUserFunctionInvokePolicy",
+            "Roles": [
+              "TransferUserFunctionRole"
+            ],
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "transfer:DescribeUser",
+                    "transfer:CreateUser",
+                    "transfer:ImportSshPublicKey",
+                    "transfer:ListUsers",
+                    "iam:PassRole",
+                    "logs:*"
+                  ],
+                  "Resource": [
+                    "*"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Outputs": {}
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless.yaml",
+    "initialServerlessConfig": {
+      "service": "transfer-user-lambda",
+      "useDotenv": true,
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "functions": {
+        "$ref": "$[\"service\"][\"functions\"]"
+      },
+      "resources": {
+        "$ref": "$[\"service\"][\"resources\"]"
+      },
+      "package": {
+        "individually": true,
+        "excludeDevDependencies": true,
+        "patterns": [
+          "!.serverless/**",
+          "!node_modules/**",
+          "!.env.dev",
+          "!package-lock.json",
+          "!package.json",
+          "!requirements.txt",
+          "!serverless.yaml"
+        ],
+        "artifactsS3KeyDirname": "serverless/transfer-user-lambda/dev/code-artifacts",
+        "deploymentBucket": "test-deployment-bucket-danial",
+        "artifactDirectoryName": "serverless/transfer-user-lambda/dev/1709852572188-2024-03-07T23:02:52.188Z"
+      }
+    },
+    "layers": {},
+    "isDashboardMonitoringPreconfigured": false
+  },
+  "package": {
+    "individually": true,
+    "artifactDirectoryName": "serverless/transfer-user-lambda/dev/1709852572188-2024-03-07T23:02:52.188Z",
+    "artifact": ""
+  }
+}
