@@ -5,7 +5,7 @@ This serverless application automates the transfer of users from one AWS Transfe
 The Lambda function fetches all users from the source server, checks their existence on the destination server, and creates them on the destination server if they don't already exist. It also updates the SSH public keys for each user on the destination server.
 
 ## Setup
-# Prerequisites
+### Prerequisites
 AWS CLI installed and configured with necessary permissions.
 AWS Transfer Family servers set up with the required users on both source and destination.
 Python 3.10 installed on your local machine.
